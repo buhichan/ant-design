@@ -178,4 +178,35 @@ describe('List Item Layout', () => {
     );
     expect(wrapper).toMatchSnapshot();
   });
+
+  it('forwards ref to the inner HTMLElement', () => {
+    const dataWithId = [
+      {
+        id: 1,
+        title: `ant design`,
+      },
+    ];
+    const ref1 = React.createRef();
+    mount(
+      <List
+        dataSource={dataWithId}
+        rowKey={item => item.id}
+        renderItem={item => <List.Item ref={ref1}>{item.title}</List.Item>}
+      />,
+    );
+
+    expect(ref1.current).toBeInstanceOf(HTMLLIElement);
+
+    const ref2 = React.createRef();
+    mount(
+      <List
+        grid={{ column: 2 }}
+        dataSource={dataWithId}
+        rowKey={item => item.id}
+        renderItem={item => <List.Item ref={ref2}>{item.title}</List.Item>}
+      />,
+    );
+
+    expect(ref2.current).toBeInstanceOf(HTMLDivElement);
+  });
 });
