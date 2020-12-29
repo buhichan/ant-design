@@ -50,6 +50,7 @@ export interface ListProps<T> {
   header?: React.ReactNode;
   footer?: React.ReactNode;
   locale?: ListLocale;
+  ref?: React.Ref<HTMLElement>;
 }
 
 export interface ListLocale {
@@ -65,26 +66,29 @@ export const ListContext = React.createContext<ListConsumerProps>({});
 
 export const ListConsumer = ListContext.Consumer;
 
-function List<T>({
-  pagination = false as ListProps<any>['pagination'],
-  prefixCls: customizePrefixCls,
-  bordered = false,
-  split = true,
-  className,
-  children,
-  itemLayout,
-  loadMore,
-  grid,
-  dataSource = [],
-  size,
-  header,
-  footer,
-  loading = false,
-  rowKey,
-  renderItem,
-  locale,
-  ...rest
-}: ListProps<T>) {
+function ListWithRef<T>(
+  {
+    pagination = false as ListProps<any>['pagination'],
+    prefixCls: customizePrefixCls,
+    bordered = false,
+    split = true,
+    className,
+    children,
+    itemLayout,
+    loadMore,
+    grid,
+    dataSource = [],
+    size,
+    header,
+    footer,
+    loading = false,
+    rowKey,
+    renderItem,
+    locale,
+    ...rest
+  }: ListProps<T>,
+  ref: React.Ref<HTMLDivElement>,
+) {
   const paginationObj = pagination && typeof pagination === 'object' ? pagination : {};
 
   const [paginationCurrent, setPaginationCurrent] = React.useState(
@@ -259,7 +263,7 @@ function List<T>({
 
   return (
     <ListContext.Provider value={{ grid, itemLayout }}>
-      <div className={classString} {...rest}>
+      <div className={classString} {...rest} ref={ref}>
         {(paginationPosition === 'top' || paginationPosition === 'both') && paginationContent}
         {header && <div className={`${prefixCls}-header`}>{header}</div>}
         <Spin {...loadingProp}>
@@ -273,6 +277,14 @@ function List<T>({
     </ListContext.Provider>
   );
 }
+
+const RefList = React.forwardRef(ListWithRef);
+
+RefList.displayName = 'List';
+
+const List = (RefList as unknown) as (<T>(props: ListProps<T>) => React.ReactElement) & {
+  Item: typeof Item;
+};
 
 List.Item = Item;
 

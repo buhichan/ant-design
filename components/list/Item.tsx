@@ -14,6 +14,7 @@ export interface ListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   actions?: React.ReactNode[];
   grid?: ListGridType;
   colStyle?: React.CSSProperties;
+  ref?: React.Ref<HTMLElement>;
 }
 
 export interface ListItemMetaProps {
@@ -54,19 +55,22 @@ export const Meta: React.FC<ListItemMetaProps> = ({
   );
 };
 
-export interface ListItemTypeProps extends React.FC<ListItemProps> {
+export interface ListItemTypeProps extends React.ForwardRefExoticComponent<ListItemProps> {
   Meta: typeof Meta;
 }
 
-const Item: ListItemTypeProps = ({
-  prefixCls: customizePrefixCls,
-  children,
-  actions,
-  extra,
-  className,
-  colStyle,
-  ...others
-}) => {
+const ItemWithRef = (
+  {
+    prefixCls: customizePrefixCls,
+    children,
+    actions,
+    extra,
+    className,
+    colStyle,
+    ...others
+  }: ListItemProps,
+  ref: React.Ref<HTMLDivElement | HTMLLIElement>,
+) => {
   const { grid, itemLayout } = React.useContext(ListContext);
   const { getPrefixCls } = React.useContext(ConfigContext);
 
@@ -103,6 +107,11 @@ const Item: ListItemTypeProps = ({
   const itemChildren = (
     <Element
       {...(others as any)} // `li` element `onCopy` prop args is not same as `div`
+      {...(grid
+        ? {}
+        : {
+            ref,
+          })}
       className={classNames(
         `${prefixCls}-item`,
         {
@@ -126,7 +135,7 @@ const Item: ListItemTypeProps = ({
   );
 
   return grid ? (
-    <Col flex={1} style={colStyle}>
+    <Col flex={1} style={colStyle} ref={ref as React.ForwardedRef<HTMLDivElement>}>
       {itemChildren}
     </Col>
   ) : (
@@ -134,6 +143,12 @@ const Item: ListItemTypeProps = ({
   );
 };
 
+const Item = React.forwardRef<HTMLDivElement | HTMLLIElement, ListItemProps>(
+  ItemWithRef,
+) as React.ForwardRefExoticComponent<ListItemProps> & { Meta: typeof Meta };
+
 Item.Meta = Meta;
+
+Item.displayName = 'Item';
 
 export default Item;
